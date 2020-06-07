@@ -1,13 +1,13 @@
 from typing import Dict, Tuple, Iterable
 from itertools import product
-from math import sqrt
 import string
 import random
 
 # 8-bit colors
 COLORS_AMOUNT = 256
-MAX_TEXT_LENGTH = 30
-MAX_COLORS_PER_LETTER = 2
+MAX_COLORS_TO_COMPUTE = 36
+ITERATION_NUM = 3
+MAX_TEXT_LENGTH = round(MAX_COLORS_TO_COMPUTE / ITERATION_NUM)
 
 letters = list(string.ascii_lowercase)
 colors = tuple(range(COLORS_AMOUNT))
@@ -25,23 +25,38 @@ colors_by_letters: Dict[str, Tuple[int, ...]] = {
 
 def combine_colors(text: str) -> Iterable[Tuple[int, ...]]:
     letter_tuples: List[Tuple[int, ...]] = []
+    text_length = len(text)
+    choices_per_letter = round(MAX_TEXT_LENGTH / text_length)
+    difference = MAX_TEXT_LENGTH - (choices_per_letter * text_length)
+    text_iteration = []
 
-    # instead of add all the colors, add cartain amount of colors per letter randomly
-    # no matter how big or small is the text, always display the same amoutn of colors
+    for i in range(text_length):
+        if difference > i:
+            text_iteration.append(choices_per_letter + 1)
+            continue
+
+        if (difference + i) < 0:
+            text_iteration.append(choices_per_letter - 1)
+            continue
+
+        text_iteration.append(choices_per_letter)
+
     # iterate over a fix range
-    # use letters to get colors in each iteration
-    for _ in range(3):
+    for _ in range(ITERATION_NUM):
         text_colors = []
 
-        for letter in text:
-            color_choice = random.choice(
-                colors_by_letters.get(letter, (0,))
+        for idx, letter in enumerate(text):
+            # use letters to get colors in each iteration.
+            # add cartain amount of colors per letter randomly.
+            # no matter how big or small is the text,
+            # always display the same amount of colors.
+            color_choice = random.choices(
+                colors_by_letters.get(letter, (0,)),
+                k=text_iteration[idx]
             )
-            text_colors.append(color_choice)
+            text_colors.extend(color_choice)
 
         letter_tuples.append(text_colors)
-
-    print(letter_tuples)
 
     return product(*letter_tuples)
 
@@ -65,4 +80,4 @@ while True:
         output = generate_colors_output(user_text)
         print(output)
     else:
-        print('The text maximum length should be 6 characters')
+        print('The text maximum length should be {} characters'.format(MAX_TEXT_LENGTH))
