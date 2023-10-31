@@ -1,1 +1,1 @@
-# my-idea-of-fun
+# My idea of fun
